@@ -4,34 +4,34 @@ from chat import get_response
 
 # --- GUI SETUP ---
 ctk.set_appearance_mode("Dark")
-ctk.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
+ctk.set_default_color_theme("dark-blue")  # Themes: "blue", "green", "dark-blue"
 
 class ChatApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # Window Config
-        self.title("Ayush's AI Assistant")
+        # Window Config - Changed title to be generic
+        self.title("AI Assistant") 
         self.geometry("500x700")
         
-        # Grid Configuration (Makes it resizable and responsive)
+        # Grid Configuration
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1) # Chat area expands
+        self.grid_rowconfigure(1, weight=1) 
 
-        # 1. Title Label (Cyberpunk Style)
+        # 1. Title Label
         self.title_label = ctk.CTkLabel(
             self, 
             text="⚡ SYSTEM ONLINE ⚡", 
             font=("Roboto Medium", 16),
-            text_color="#00e5ff" # Neon Cyan text
+            text_color="#00e5ff" 
         )
         self.title_label.grid(row=0, column=0, pady=10)
 
-        # 2. Chat Area (Scrollable)
+        # 2. Chat Area
         self.chat_frame = ctk.CTkScrollableFrame(
             self, 
             corner_radius=15,
-            fg_color="#121212" # Very dark background for chat
+            fg_color="#121212" 
         )
         self.chat_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
 
@@ -60,49 +60,42 @@ class ChatApp(ctk.CTk):
             height=45, 
             command=self.send_message, 
             corner_radius=20,
-            fg_color="#00b8d4", # Bright Cyan Button
+            fg_color="#00b8d4", 
             hover_color="#00838f",
             font=("Arial", 18, "bold")
         )
         self.send_btn.pack(side="right")
 
-        # Initial Greeting
-        self.add_message("Bot", "Greetings, Ayush. Systems are operational. 🚀")
+        # Initial Greeting - Replaced "Ayush" with "User"
+        self.add_message("Bot", "Greetings, User. Systems are operational. 🚀")
 
     def add_message(self, sender, text):
-        # --- COLOR SCHEME & ALIGNMENT ---
         if sender == "You":
-            bubble_color = "#37474f"   # Dark Charcoal for User
+            bubble_color = "#37474f"   
             text_color = "white"
             align_side = "right"
         else:
-            bubble_color = "#00695c"   # Deep Teal for Bot (Matrix vibes)
+            bubble_color = "#00695c"   
             text_color = "white"
             align_side = "left"
 
-        # Container Frame (Invisible, just holds the bubble)
         msg_container = ctk.CTkFrame(self.chat_frame, fg_color="transparent")
         msg_container.pack(pady=5, fill="x")
 
-        # The Bubble Itself
         bubble = ctk.CTkLabel(
             msg_container, 
             text=text, 
             fg_color=bubble_color, 
             text_color=text_color, 
             corner_radius=15,
-            wraplength=350,       # Wrap text if it gets too long
+            wraplength=350,       
             font=("Arial", 14),
-            padx=15, pady=10,     # Internal padding (breathing room)
-            justify="left",       # ✅ KEY FIX: Left-aligns multiple lines
-            anchor="w"            # ✅ KEY FIX: Anchors text to the West (Left)
+            padx=15, pady=10,     
+            justify="left",       
+            anchor="w"            
         )
         
-        # Pack bubble to Left or Right
         bubble.pack(side=align_side, padx=10)
-
-        # Auto-scroll to the bottom
-        # We use .after() to ensure the GUI updates before scrolling
         self.after(10, self._scroll_to_bottom)
 
     def _scroll_to_bottom(self):
@@ -113,17 +106,13 @@ class ChatApp(ctk.CTk):
         if not user_input.strip():
             return
 
-        # 1. Show User Message Immediately
         self.add_message("You", user_input)
         self.entry.delete(0, "end")
 
-        # 2. Get Bot Response in Background Thread
-        # This prevents the window from freezing while searching Wikipedia
         threading.Thread(target=self.get_bot_reply, args=(user_input,)).start()
 
     def get_bot_reply(self, user_input):
         response = get_response(user_input)
-        # Update GUI safely
         self.add_message("Bot", response)
 
 if __name__ == "__main__":
