@@ -14,16 +14,16 @@ from nltk.stem import WordNetLemmatizer
 
 lemmatizer = WordNetLemmatizer()
 
-# --- CONFIGURATION: YOUR EXACT PATHS ---
+# --- CONFIGURATION: GENERALIZED PATHS ---
+# ✅ TO HIDE YOUR IDENTITY, REPLACE "User_Name" WITH YOUR ACTUAL WINDOWS USERNAME LOCALLY
 PATHS = {
-    # ✅ UPDATED WITH THE PATHS YOU PROVIDED
-    "vscode": r"C:\Users\Ayush\AppData\Local\Programs\Microsoft VS Code\Code.exe",
-    "opera": r"C:\Users\Ayush\AppData\Local\Programs\Opera GX\opera.exe",
+    "vscode": r"C:\Users\User_Name\AppData\Local\Programs\Microsoft VS Code\Code.exe",
+    "opera": r"C:\Users\User_Name\AppData\Local\Programs\Opera GX\opera.exe",
     
-    # Folders (You can change these if needed)
-    "project_folder": r"C:\Users\Ayush\py ai",
-    "downloads": r"C:\Users\Ayush\Downloads",
-    "documents": r"C:\Users\Ayush\Documents"
+    # Folders (Generalized)
+    "project_folder": r"C:\Users\User_Name\Documents\Projects",
+    "downloads": r"C:\Users\User_Name\Downloads",
+    "documents": r"C:\Users\User_Name\Documents"
 }
 
 # --- LOAD BRAIN ---
@@ -87,9 +87,8 @@ def open_application(intent, user_input):
     try:
         # --- 1. OPEN VS CODE (Smart Path Detection) ---
         if intent == "open_vscode":
-            target_folder = PATHS["project_folder"] # Default backup
+            target_folder = PATHS["project_folder"] 
             
-            # Detect if user typed a path (Look for pattern like "C:\...")
             path_match = re.search(r'[a-zA-Z]:\\[\w\\ ]+', user_input)
             
             if path_match:
@@ -100,11 +99,10 @@ def open_application(intent, user_input):
                     return f"Error: The path '{extracted_path}' does not exist on your PC."
 
             if os.path.exists(PATHS["vscode"]):
-                # We pass the extracted folder to VS Code
                 subprocess.Popen([PATHS["vscode"], target_folder])
                 return f"VS Code opened in: {target_folder}"
             else:
-                return f"Error: VS Code not found at {PATHS['vscode']}"
+                return f"Error: VS Code not found at path."
 
         # --- 2. OPEN OPERA GX ---
         elif intent == "open_opera":
@@ -112,17 +110,15 @@ def open_application(intent, user_input):
                 subprocess.Popen([PATHS["opera"]])
                 return "Opera GX launched."
             else:
-                return f"Error: Opera not found at {PATHS['opera']}"
+                return f"Error: Opera not found."
 
         # --- 3. OPEN FOLDERS ---
         elif intent == "open_folder":
-            target_path = PATHS["project_folder"] # Default
+            target_path = PATHS["project_folder"] 
             
-            # Check for path in input first
             path_match = re.search(r'[a-zA-Z]:\\[\w\\ ]+', user_input)
             if path_match and os.path.exists(path_match.group(0)):
                 target_path = path_match.group(0)
-            # Keywords fallback
             elif "download" in user_input.lower():
                 target_path = PATHS["downloads"]
             elif "document" in user_input.lower():
@@ -132,13 +128,13 @@ def open_application(intent, user_input):
                 os.startfile(target_path)
                 return f"Opened folder: {target_path}"
             else:
-                return f"Error: Folder not found at {target_path}"
+                return f"Error: Folder not found."
 
         # --- 4. STANDARD APPS ---
         elif intent == "open_chrome":
             try:
                 subprocess.Popen(["start", "chrome"], shell=True)
-            except Exception:  # <--- FIXED: Added 'Exception' to silence the warning
+            except Exception:
                 webbrowser.open("https://www.google.com")
             return "Chrome launched."
             
@@ -154,34 +150,31 @@ def open_application(intent, user_input):
         return f"Error opening app: {e}"
 
     return "I don't know how to open that app yet."
+
 # --- MAIN CHAT BOT ---
 
 def get_response(user_input):
-    # 1. Preprocess
     words = nltk.word_tokenize(user_input)
     clean_words = [lemmatizer.lemmatize(w.lower()) for w in words]
     input_text = " ".join(clean_words)
 
-    # 2. Predict Intent
     input_vector = vectorizer.transform([input_text])
     predicted_tag = clf.predict(input_vector)[0]
 
-    # 3. Check Confidence
     probs = clf.predict_proba(input_vector)
     max_prob = np.max(probs)
 
     if max_prob < 0.5:
-        # Randomize the "I don't know" response to feel more human
+        # ✅ NAME REMOVED: Changed "Ayush" to "User"
         fallback_responses = [
             "I missed that. Could you say it differently?",
             "My circuits are confused. What do you mean?",
-            "I'm still learning, Ayush. Can you teach me that?",
+            "I'm still learning, User. Can you teach me that?",
             "404 Error: Understanding not found.",
             "That went over my head. Try again?"
         ]
         return random.choice(fallback_responses)
 
-    # 4. HANDLE SPECIAL TAGS
     if predicted_tag in ["open_vscode", "open_opera", "open_folder", "open_chrome", "open_notepad", "open_youtube"]:
         return open_application(predicted_tag, user_input)
         
@@ -200,17 +193,12 @@ def get_response(user_input):
     elif predicted_tag == "wikipedia":
         return search_wikipedia(user_input)
 
-    # 5. Standard AI Response
     return random.choice(responses[predicted_tag])
 
 # --- RUN LOOP ---
-# --- RUN LOOP ---
-# This "if" statement is CRITICAL. It prevents the chat loop 
-# from running when we import the file into the GUI.
 if __name__ == "__main__":
-    print("\n--- SUPER CHATBOT (AI + Tools) ---")
+    print("\n--- AI ASSISTANT (SYSTEM READY) ---")
     while True:
-        # ... your loop code ...
         user_input = input("You: ")
         if user_input.lower() in ["quit", "exit"]:
             break
